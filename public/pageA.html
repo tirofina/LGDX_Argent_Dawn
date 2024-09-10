@@ -6,19 +6,25 @@
   <title>Page A - Sync Example</title>
   <link rel="stylesheet" href="styles.css">
 </head>
+
 <body>
+  <!-- 가상의 커서 영역 -->
+  <img id="virtualCursor" src="cursor_blue.png" style="position: absolute; display: none; z-index: 9999;" />
 
   <!-- 카드 컨테이너 -->
   <div class="card-container">
-    <div class="card">
+    <div class="card" id="card1">
       <h3>Card 1</h3>
       <p>This is the first card.</p>
     </div>
-    <div class="card">
+    <div class="card" id="card2">
       <h3>Card 2</h3>
       <p>This is the second card.</p>
     </div>
   </div>
+
+  <!-- WebGL 캔버스 -->
+  <canvas id="glcanvas"></canvas>
 
   <!-- 비디오 요소 (WebGL 텍스처로만 사용) -->
   <video id="video" autoplay loop muted playsinline style="display: none;">
@@ -26,9 +32,6 @@
     <source src="your-video.webm" type="video/webm">
     Your browser does not support the video tag.
   </video>
-
-  <!-- WebGL 캔버스 -->
-  <canvas id="glcanvas"></canvas>
 
   <!-- JavaScript 파일 연결 -->
   <script type="module" src="scripts-pageA.js" defer></script>

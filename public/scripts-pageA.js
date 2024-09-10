@@ -1,3 +1,87 @@
+document.addEventListener('DOMContentLoaded', function() {
+  const cursor = document.getElementById("virtualCursor");
+  const syncKey = 'syncMouse';
+  const toggleKey = 'toggleMouseVisibility'; // 마우스 이미지 비저블 상태 동기화 키
+  let mouseEnabled = true;  // 마우스 기능 활성화 여부
+
+  // 마우스가 페이지 위에 있을 때 커서 동기화 및 표시
+  document.addEventListener('mousemove', (e) => {
+    if (mouseEnabled) {
+      updateCursor(e.clientX, e.clientY);
+      syncCursor(e.clientX, e.clientY);
+    }
+  });
+
+  // F9 키로 마우스 기능 토글
+  document.addEventListener('keydown', (e) => {
+    if (e.key === "F9") {
+      toggleMouse();
+    }
+  });
+
+  function updateCursor(x, y) {
+    cursor.style.display = 'block';
+    cursor.src = 'cursor_blue.png';  // A에서 커서 이미지 설정
+    cursor.style.left = `${x}px`;
+    cursor.style.top = `${y}px`;
+
+    // 실제 마우스 커서를 숨김
+    document.body.style.cursor = 'none';
+  }
+
+  function syncCursor(x, y) {
+    const eventData = {
+      type: 'mousemove',
+      x: x,
+      y: y
+    };
+    localStorage.setItem(syncKey, JSON.stringify(eventData));
+  }
+
+  function toggleMouse() {
+    mouseEnabled = !mouseEnabled;
+    if (!mouseEnabled) {
+      cursor.style.display = 'none';
+      document.body.style.cursor = 'auto';  // 원래 커서 표시
+    } else {
+      cursor.style.display = 'block';
+      document.body.style.cursor = 'none';  // 가상 커서 표시
+    }
+
+    // 마우스 이미지 상태를 B에도 동기화
+    const toggleEvent = {
+      type: 'toggleMouse',
+      visible: mouseEnabled
+    };
+    localStorage.setItem(toggleKey, JSON.stringify(toggleEvent));
+  }
+
+  // Page B에서 마우스 커서 동기화 수신
+  window.addEventListener('storage', (e) => {
+    if (e.key === syncKey && e.newValue) {
+      const eventData = JSON.parse(e.newValue);
+      if (mouseEnabled) {
+        updateCursor(eventData.x, eventData.y);
+      }
+    }
+
+    // Page B에서 마우스 이미지 비저블 상태 동기화 수신
+    if (e.key === toggleKey && e.newValue) {
+      const toggleEvent = JSON.parse(e.newValue);
+      if (toggleEvent.visible) {
+        cursor.style.display = 'block';
+        document.body.style.cursor = 'none';  // 가상 커서 표시
+      } else {
+        cursor.style.display = 'none';
+        document.body.style.cursor = 'auto';  // 원래 커서 표시
+      }
+    }
+  });
+});
+
+
+
+
 document.addEventListener("DOMContentLoaded", function () {
   const video = document.getElementById("video");
   const canvas = document.getElementById("glcanvas");
@@ -35,8 +119,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // 동기화 이벤트 전송
     const eventData = {
-      type: 'toggleCanvasVisibility',
-      visibility: canvas.style.display
+      type: "toggleCanvasVisibility",
+      visibility: canvas.style.display,
     };
     sendEvent(eventData);
   }
