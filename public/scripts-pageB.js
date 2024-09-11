@@ -1,8 +1,180 @@
+// redirect via BroadcastChannel
+document.addEventListener('DOMContentLoaded', function() {
+  const card4 = document.getElementById("card4");
+  const channel = new BroadcastChannel('redirect_channel');
+
+  // Card 4 클릭 시 리다이렉트 동작
+  card4.addEventListener('click', () => {
+    syncRedirect();
+    redirectToPageC();
+  });
+
+  // Page C로 리다이렉트
+  function redirectToPageC() {
+    window.location.href = 'pageC.html';
+  }
+
+  // 리다이렉트 동기화
+  function syncRedirect() {
+    channel.postMessage({ type: 'redirect', target: 'pageC' });
+  }
+
+  // 다른 페이지에서 리다이렉트 수신
+  channel.onmessage = (event) => {
+    if (event.data.type === 'redirect' && event.data.target === 'pageC') {
+      redirectToPageC();
+    }
+  };
+});
+
+// card effects
+document.addEventListener('DOMContentLoaded', function() {
+  const card1 = document.getElementById("card1");
+  const card2 = document.getElementById("card2");
+  const card3 = document.getElementById("card3");
+  const overlay = document.getElementById("overlay");
+  const syncKey = 'syncOverlay';
+  const glowSyncKey = 'syncGlow';
+  const zIndexSyncKey = 'syncZIndex';
+  let isOverlayVisible = false;
+  let isGlowActive = false;
+
+  // Card 1 클릭 시 덮개 토글
+  card1.addEventListener('click', () => {
+    toggleOverlay(card1);
+    syncOverlay(isOverlayVisible, 'card1');
+    syncZIndex('card1', isOverlayVisible ? 10001 : 50);  // z-index 공유, 해제 시 50으로 설정
+  });
+
+  // Card 2 클릭 시 글로우 효과 토글
+  card2.addEventListener('click', () => {
+    toggleGlowEffect(card2);
+    syncGlowEffect(isGlowActive, 'card2');
+    syncZIndex('card2', isGlowActive ? 10001 : 50);  // z-index 공유, 해제 시 50으로 설정
+  });
+
+  // Card 3 클릭 시 덮개 + 글로우 효과 모두 적용
+  card3.addEventListener('click', () => {
+    toggleOverlay(card3);
+    toggleGlowEffect(card3);
+    syncOverlay(isOverlayVisible, 'card3');
+    syncGlowEffect(isGlowActive, 'card3');
+    syncZIndex('card3', (isOverlayVisible || isGlowActive) ? 10001 : 50);  // z-index 공유
+  });
+
+  // 덮개 토글 함수
+  function toggleOverlay(card) {
+    isOverlayVisible = !isOverlayVisible;
+    if (isOverlayVisible) {
+      overlay.style.display = 'block';
+      overlay.style.zIndex = '10000';  // 덮개 z-index
+      card.style.zIndex = '10001';  // 클릭된 카드 z-index
+      overlay.style.animation = 'fadeInDark 0.5s ease forwards';  // 어두워지는 애니메이션
+    } else {
+      overlay.style.animation = 'fadeOutDark 0.5s ease forwards';  // 밝아지는 애니메이션
+      setTimeout(() => {
+        overlay.style.display = 'none';
+        card.style.zIndex = '50';  // 해제 시 z-index 50으로 설정
+      }, 500);
+    }
+  }
+
+  // 덮개 상태 동기화
+  function syncOverlay(visible, cardId) {
+    const eventData = {
+      type: 'toggleOverlay',
+      visible: visible,
+      targetCard: cardId
+    };
+    localStorage.setItem(syncKey, JSON.stringify(eventData));
+  }
+
+  // 글로우 효과 토글 함수
+  function toggleGlowEffect(card) {
+    isGlowActive = !isGlowActive;
+    card.classList.toggle('glow-effect');
+    if (!isGlowActive) {
+      card.style.zIndex = '50';  // 글로우 해제 시 z-index 50으로 설정
+    }
+  }
+
+  // 글로우 상태 동기화
+  function syncGlowEffect(glowState, cardId) {
+    const glowEvent = {
+      type: 'toggleGlow',
+      active: glowState,
+      targetCard: cardId
+    };
+    localStorage.setItem(glowSyncKey, JSON.stringify(glowEvent));
+  }
+
+  // z-index 동기화
+  function syncZIndex(cardId, zIndexValue) {
+    const zIndexEvent = {
+      type: 'updateZIndex',
+      targetCard: cardId,
+      zIndex: zIndexValue
+    };
+    localStorage.setItem(zIndexSyncKey, JSON.stringify(zIndexEvent));
+  }
+
+  // 다른 페이지에서 덮개, 글로우, z-index 상태 동기화 수신
+  window.addEventListener('storage', (e) => {
+    if (e.key === syncKey && e.newValue) {
+      const eventData = JSON.parse(e.newValue);
+      const targetCard = document.getElementById(eventData.targetCard);
+      isOverlayVisible = eventData.visible;
+      if (isOverlayVisible) {
+        overlay.style.display = 'block';
+        overlay.style.zIndex = '10000';
+        targetCard.style.zIndex = '10001';
+        overlay.style.animation = 'fadeInDark 0.5s ease forwards';
+      } else {
+        overlay.style.animation = 'fadeOutDark 0.5s ease forwards';
+        setTimeout(() => {
+          overlay.style.display = 'none';
+          targetCard.style.zIndex = '50';  // 해제 시 z-index 50으로 설정
+        }, 500);
+      }
+    }
+
+    if (e.key === glowSyncKey && e.newValue) {
+      const glowEvent = JSON.parse(e.newValue);
+      const targetCard = document.getElementById(glowEvent.targetCard);
+      isGlowActive = glowEvent.active;
+      if (isGlowActive) {
+        targetCard.classList.add('glow-effect');
+        targetCard.style.zIndex = '10001';  // 글로우가 활성화된 카드 z-index 10001
+      } else {
+        targetCard.classList.remove('glow-effect');
+        targetCard.style.zIndex = '50';  // 글로우 해제 시 z-index 50으로 설정
+      }
+    }
+
+    if (e.key === zIndexSyncKey && e.newValue) {
+      const zIndexEvent = JSON.parse(e.newValue);
+      const targetCard = document.getElementById(zIndexEvent.targetCard);
+      targetCard.style.zIndex = zIndexEvent.zIndex;
+    }
+  });
+});
+
+// mouse sync
 document.addEventListener('DOMContentLoaded', function() {
   const cursor = document.getElementById("virtualCursor");
   const syncKey = 'syncMouse';
   const toggleKey = 'toggleMouseVisibility'; // 마우스 이미지 비저블 상태 동기화 키
   let mouseEnabled = true;  // 마우스 기능 활성화 여부
+
+  // 마우스 커서가 페이지를 나갔을 때 이미지 숨기기
+  document.addEventListener('mouseleave', () => {
+    cursor.style.display = 'none';  // 마우스 이미지 숨기기
+  });
+
+  // 마우스 커서가 다시 들어오면 이미지 보이기
+  document.addEventListener('mouseenter', () => {
+    cursor.style.display = 'block';  // 마우스 이미지 보이기
+  });
 
   // Page B에서 마우스 커서 위치 동기화 및 표시
   document.addEventListener('mousemove', (e) => {
@@ -10,6 +182,7 @@ document.addEventListener('DOMContentLoaded', function() {
       updateCursor(e.clientX, e.clientY);
       syncCursor(e.clientX, e.clientY);
     }
+    virtualCursor.style.zIndex = '10001';
   });
 
   function updateCursor(x, y) {
@@ -72,8 +245,7 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 });
 
-
-
+// vedio
 document.addEventListener("DOMContentLoaded", function () {
   const video = document.getElementById("video");
   const canvas = document.getElementById("glcanvas");

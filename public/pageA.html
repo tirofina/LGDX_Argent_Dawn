@@ -3,23 +3,32 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0, user-scalable=no">
-  <title>Page A - Sync Example</title>
+  <title>Page A/B - Sync Example</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 
 <body>
+  
   <!-- 가상의 커서 영역 -->
-  <img id="virtualCursor" src="cursor_blue.png" style="position: absolute; display: none; z-index: 9999;" />
+  <img id="virtualCursor" src="cursor_blue.png" style="position: absolute; display: none; z-index: 9999; pointer-events: none;" />
 
   <!-- 카드 컨테이너 -->
   <div class="card-container">
     <div class="card" id="card1">
       <h3>Card 1</h3>
-      <p>This is the first card.</p>
+      <p>This is the first card (with overlay effect).</p>
     </div>
     <div class="card" id="card2">
       <h3>Card 2</h3>
-      <p>This is the second card.</p>
+      <p>This is the second card (with glow effect).</p>
+    </div>
+    <div class="card" id="card3">
+      <h3>Card 3</h3>
+      <p>This is the third card (with both effects).</p>
+    </div>
+    <div class="card" id="card4">
+      <h3>Card 4</h3>
+      <p>This is the fourth card (redirect to Page C).</p>
     </div>
   </div>
 
@@ -33,7 +42,10 @@
     Your browser does not support the video tag.
   </video>
 
+  <!-- Overlay for Card 1 and Card 3 click -->
+  <div id="overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background-color:rgba(0, 0, 0, 0.8); z-index:9995;"></div>
+
   <!-- JavaScript 파일 연결 -->
-  <script type="module" src="scripts-pageA.js" defer></script>
+  <script src="scripts-pageA.js" defer></script>
 </body>
 </html>

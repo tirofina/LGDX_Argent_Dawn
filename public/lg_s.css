@@ -1,0 +1,231 @@
+body {
+  margin: 0;
+  padding: 0;
+}
+.container {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  background: white;
+}
+.background-img {
+  width: 360px;
+  height: 800px;
+  left: 0px;
+  top: 0px;
+  position: absolute;
+}
+.robot-img {
+  width: 167px;
+  height: 196px;
+  left: 96px;
+  top: 146px;
+  position: absolute;
+  border-radius: 17px;
+}
+/* 박스 내부 텍스트 정렬 및 스타일링 */
+.text-box {
+  width: 230px;
+  height: 65px;
+  left: 65px;
+  top: 355px;
+  position: absolute;
+  background: #23778e;
+  border-radius: 32.5px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  color: white;
+  font-size: 22px;
+  font-family: "LG Smart UI";
+  font-weight: 700;
+  line-height: 1.2;
+}
+.product-title {
+  width: 190.01px;
+  left: 85px;
+  top: 361px;
+  position: absolute;
+  text-align: center;
+  color: white;
+  font-size: 22px;
+  font-family: "LG Smart UI";
+  font-weight: 700;
+  word-wrap: break-word;
+}
+.blue-box {
+  width: 155px;
+  height: 167px;
+  left: 22px;
+  top: 495px;
+  position: absolute;
+  background: #1c80b7;
+  border-radius: 14px;
+}
+.red-box {
+  width: 155px;
+  height: 167px;
+  left: 183px;
+  top: 495px;
+  position: absolute;
+  background: #d04a4a;
+  border-radius: 14px;
+}
+.large-box {
+  width: 316px;
+  height: 70px;
+  left: 22px;
+  top: 669px;
+  position: absolute;
+  background: #314088;
+  border-radius: 14px;
+}
+.semi-transparent-box {
+  width: 316px;
+  height: 65px;
+  left: 22px;
+  top: 74px;
+  position: absolute;
+  background: rgba(102, 108, 139, 0.54);
+  border-radius: 14px;
+}
+.review-text {
+  width: 118.92px;
+  left: 203px;
+  top: 561px;
+  position: absolute;
+  text-align: center;
+  color: white;
+  font-size: 32px;
+  font-family: "LG Smart UI";
+  font-weight: 700;
+  word-wrap: break-word;
+}
+.mode-title {
+  width: 191.1px;
+  left: 39px;
+  top: 38px;
+  position: absolute;
+  text-align: center;
+  color: #111111;
+  font-size: 20px;
+  font-family: "LG Smart UI";
+  font-weight: 700;
+  word-wrap: break-word;
+}
+.consult-text {
+  width: 250.13px;
+  left: 55.44px;
+  top: 686px;
+  position: absolute;
+  text-align: center;
+  color: white;
+  font-size: 32px;
+  font-family: "LG Smart UI";
+  font-weight: 700;
+  word-wrap: break-word;
+}
+.service-description {
+  width: 311.6px;
+  left: 26.27px;
+  top: 428px;
+  position: absolute;
+  text-align: center;
+  color: #111111;
+  font-size: 24px;
+  font-family: "LG Smart UI";
+  font-weight: 400;
+  word-wrap: break-word;
+}
+.border-line {
+  width: 20px;
+  height: 0px;
+  left: 39px;
+  top: 49px;
+  position: absolute;
+  transform: rotate(180deg);
+  transform-origin: 0 0;
+  border: 2px #111111 solid;
+}
+.instant-consult {
+  width: 125.51px;
+  left: 33px;
+  top: 561px;
+  position: absolute;
+  text-align: center;
+  color: white;
+  font-size: 32px;
+  font-family: "LG Smart UI";
+  font-weight: 700;
+  word-wrap: break-word;
+}
+
+.blue-box,
+.red-box,
+.large-box,
+.semi-transparent-box {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  color: white;
+  font-weight: 700;
+}
+
+/* 각각의 텍스트 크기 조정 */
+.blue-box {
+  font-size: 24px; /* "바로 상담" 글씨 크기 */
+}
+
+.red-box {
+  font-size: 24px; /* "복습" 글씨 크기 */
+}
+
+.large-box {
+  font-size: 24px; /* "상담 예약" 글씨 크기 */
+}
+
+.semi-transparent-box {
+  font-size: 20px; /* "로봇청소기 오똑이 모드" 글씨 크기 */
+  color: #111111;
+}
+
+.service-description {
+  font-size: 24px; /* 설명 텍스트 크기 */
+  line-height: 1.5;
+  text-align: center;
+  color: #111111;
+}
+/* 호버링 시 효과 추가 */
+.text-box:hover,
+.blue-box:hover,
+.large-box:hover,
+.red-box:hover,
+.semi-transparent-box:hover {
+  transform: translateY(-3px); /* 살짝 위로 이동 */
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2); /* 그림자 효과 */
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* 글로우 효과 */
+/* @keyframes pulseGlow {
+    0% {
+      box-shadow: 0 0 15px 5px rgba(255, 0, 119, 0.7);
+    }
+    50% {
+      box-shadow: 0 0 30px 15px rgba(255, 0, 119, 0.7);
+    }
+    100% {
+      box-shadow: 0 0 15px 5px rgba(255, 0, 119, 0.7);
+    }
+  } */
+
+/* 호버 시 글로우 효과 활성화 */
+/* .text-box:hover.glow-effect, 
+  .blue-box:hover.glow-effect, 
+  .large-box:hover.glow-effect, 
+  .red-box:hover.glow-effect, 
+  .semi-transparent-box:hover.glow-effect {
+    animation: pulseGlow 1.5s infinite;
+  } */
