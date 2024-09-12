@@ -279,9 +279,6 @@ document.addEventListener("DOMContentLoaded", function () {
   // 비디오 자동재생 설정
   video.muted = true;
 
-  if (!gl) {
-    alert("WebGL not supported");
-  }
 
   // F8 키를 눌렀을 때 비디오 숨김/보임 토글
   document.addEventListener("keydown", (e) => {
@@ -443,7 +440,7 @@ document.addEventListener("DOMContentLoaded", function () {
   video.addEventListener("loadedmetadata", () => {
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
-    gl.viewport(0, 0, canvas.width, canvas.height);
+    // gl.viewport(0, 0, canvas.width, canvas.height);
 
     const savedState = localStorage.getItem("videoState");
     if (savedState) {
@@ -585,7 +582,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   });
 
-  initWebGL();
+  // initWebGL();
 
   function compileShader(gl, source, type) {
     const shader = gl.createShader(type);
@@ -626,7 +623,7 @@ document.addEventListener("DOMContentLoaded", function () {
   video.addEventListener("loadedmetadata", () => {
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
-    gl.viewport(0, 0, canvas.width, canvas.height);
+    // gl.viewport(0, 0, canvas.width, canvas.height);
   });
 
   let lastDragUpdate = 0;
@@ -689,45 +686,4 @@ document.addEventListener("DOMContentLoaded", function () {
       sendEvent(eventData);
     }
   });
-});
-
-// WebRTC video
-let peerConnection;
-
-// WebRTC 연결 시작 함수
-function startWebRTC() {
-  const config = { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] };
-  peerConnection = new RTCPeerConnection(config);
-
-  // 수신된 스트림을 비디오 요소에 연결
-  peerConnection.ontrack = event => {
-    document.getElementById('video').srcObject = event.streams[0]; // 수신된 스트림을 비디오에 출력
-  };
-
-  // ICE 후보 생성 시 부모 페이지로 전송
-  peerConnection.onicecandidate = event => {
-    if (event.candidate) {
-      window.parent.postMessage({ type: 'iceCandidate', candidate: JSON.stringify(event.candidate), page: 'pageA' }, '*');
-    }
-  };
-}
-
-// main_site에서 보낸 메시지 처리
-window.addEventListener('message', event => {
-  if (event.data.type === 'offer') {
-    startWebRTC(); // WebRTC 시작
-    const offer = new RTCSessionDescription(JSON.parse(event.data.offer)); // Offer 수신
-    peerConnection.setRemoteDescription(offer)
-      .then(() => peerConnection.createAnswer()) // Answer 생성
-      .then(answer => {
-        peerConnection.setLocalDescription(answer);
-        window.parent.postMessage({ type: 'answer', answer: JSON.stringify(answer), page: 'pageA' }, '*'); // Answer 전송
-      })
-      .catch(error => console.error('Offer 처리 중 오류:', error));
-  }
-
-  if (event.data.type === 'iceCandidate') {
-    const candidate = new RTCIceCandidate(JSON.parse(event.data.candidate)); // ICE 후보 처리
-    peerConnection.addIceCandidate(candidate).catch(error => console.error('ICE 후보 추가 중 오류:', error));
-  }
 });

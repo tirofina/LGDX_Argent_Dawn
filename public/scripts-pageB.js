@@ -251,96 +251,60 @@ document.addEventListener("DOMContentLoaded", function () {
   const canvas = document.getElementById("glcanvas");
   const gl = canvas.getContext("webgl");
 
+  let offsetX = 0;
+  let offsetY = 0;
+  let isDragging = false;
   let scale = 1;
+
   const minScale = 0.08;
   const maxScale = 0.15;
   const syncKey = "syncData";
-  const syncThreshold = 0.1; // 0.1초 이내로 맞추기
 
-  // 비디오 자동 재생 설정
+  // 비디오 자동재생 설정
   video.muted = true;
 
-  if (!gl) {
-    alert("WebGL not supported");
-  }
 
-  // Page A에서 WebGL 캔버스 숨김/보임 토글 이벤트 수신 및 적용
-  window.addEventListener("storage", (e) => {
-    if (e.key === syncKey && e.newValue) {
-      const eventData = JSON.parse(e.newValue);
-
-      if (eventData.type === "toggleCanvasVisibility") {
-        canvas.style.display = eventData.visibility;
-      }
+  // F8 키를 눌렀을 때 비디오 숨김/보임 토글
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "F8") {
+      toggleCanvasVisibility();
     }
   });
 
-  // 이벤트 수신: A에서 재생 시간 동기화 이벤트가 오면 적용
-  window.addEventListener("storage", (e) => {
-    if (e.key === syncKey && e.newValue) {
-      const eventData = JSON.parse(e.newValue);
-
-      // 재생 시간 동기화 처리
-      if (eventData.type === "syncVideoTime") {
-        syncVideoTime(eventData.currentTime, eventData.paused);
-      }
-    }
-  });
-
-  // 재생 시간 동기화 함수
-  function syncVideoTime(currentTime, paused) {
-    video.currentTime = currentTime;
-    if (paused) {
-      video.pause();
+  function toggleCanvasVisibility() {
+    if (canvas.style.display === "none") {
+      canvas.style.display = "block";
     } else {
-      video.play().catch((error) => {
-        console.error("Error playing video: ", error);
-      });
+      canvas.style.display = "none";
     }
+
+    // 동기화 이벤트 전송
+    const eventData = {
+      type: "toggleCanvasVisibility",
+      visibility: canvas.style.display,
+    };
+    sendEvent(eventData);
   }
 
-  // 다른 페이지에서 이벤트 수신 시 동기화
-  window.addEventListener("storage", (e) => {
-    if (e.key === syncKey && e.newValue) {
-      const eventData = JSON.parse(e.newValue);
+  // 드래그 이벤트 또는 클릭이 발생할 때 B에 재생 시간 동기화 이벤트 전송
+  //  document.addEventListener('click', syncVideoTimeToB);
+  //  document.addEventListener('mousemove', syncVideoTimeToB);
+  document.addEventListener("mouseup", syncVideoTimeToB);
 
-      if (eventData.type === "click") {
-        simulateClick(eventData.x, eventData.y);
-      } else if (eventData.type === "timeupdate") {
-        syncVideoTime(); // 실시간 동기화
-      }
-    }
-  });
+  function syncVideoTimeToB() {
+    const eventData = {
+      type: "syncVideoTime",
+      currentTime: video.currentTime,
+      paused: video.paused,
+    };
+    sendEvent(eventData);
+  }
 
-  // 비디오가 준비된 후 재생 시도 및 시간 동기화
+  // 비디오가 준비된 후 재생 시도
   video.addEventListener("canplay", () => {
     ensureVideoPlayback();
   });
 
-  // 비디오가 로드되면 재생 시간 동기화
-  video.addEventListener("loadedmetadata", () => {
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-    gl.viewport(0, 0, canvas.width, canvas.height);
-
-    const savedState = localStorage.getItem("videoState");
-    if (savedState) {
-      const videoState = JSON.parse(savedState);
-      video.currentTime = videoState.currentTime;
-      if (videoState.paused) {
-        video.pause();
-      } else {
-        ensureVideoPlayback();
-      }
-      canvas.style.width = videoState.width;
-      canvas.style.height = videoState.height;
-      canvas.style.left = videoState.left;
-      canvas.style.top = videoState.top;
-    } else {
-      ensureVideoPlayback();
-    }
-  });
-
   function ensureVideoPlayback() {
     try {
       video.play().catch((error) => {
@@ -351,17 +315,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
 
-  // 비디오 재생 보장 함수
-  function ensureVideoPlayback() {
-    try {
-      video.play().catch((error) => {
-        console.error("Autoplay failed: ", error);
-      });
-    } catch (error) {
-      console.error("Error playing video: ", error);
-    }
-  }
-
+  // WebGL 초기화 함수
   function initWebGL() {
     const vertexShaderSource = `
       attribute vec2 a_position;
@@ -466,6 +420,154 @@ document.addEventListener("DOMContentLoaded", function () {
     render();
   }
 
+  // 비디오가 로드되면 재생 시간 동기화
+  video.addEventListener("loadedmetadata", () => {
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    // gl.viewport(0, 0, canvas.width, canvas.height);
+
+    const savedState = localStorage.getItem("videoState");
+    if (savedState) {
+      const videoState = JSON.parse(savedState);
+      video.currentTime = videoState.currentTime; // 재생 시간 동기화
+      if (videoState.paused) {
+        video.pause();
+      } else {
+        ensureVideoPlayback();
+      }
+      canvas.style.width = videoState.width;
+      canvas.style.height = videoState.height;
+      canvas.style.left = videoState.left;
+      canvas.style.top = videoState.top;
+    } else {
+      ensureVideoPlayback();
+    }
+  });
+  // 비디오 일시정지 방지 (항상 재생 보장)
+  video.addEventListener("pause", ensureVideoPlayback);
+
+  // 클릭 시 이벤트 전송
+  document.addEventListener("click", (e) => {
+    const x = e.clientX;
+    const y = e.clientY;
+
+    const eventData = {
+      type: "click",
+      x: x,
+      y: y,
+      timestamp: Date.now(),
+    };
+    sendEvent(eventData);
+  });
+  // 비디오 재생 시간 동기화 함수
+  function syncVideoTime() {
+    const savedState = localStorage.getItem("videoState");
+    if (savedState) {
+      const videoState = JSON.parse(savedState);
+      const timeDifference = Math.abs(
+        video.currentTime - videoState.currentTime
+      );
+
+      if (timeDifference > syncThreshold) {
+        video.currentTime = videoState.currentTime;
+        if (videoState.paused && !video.paused) {
+          video.pause();
+        } else if (!videoState.paused && video.paused) {
+          video.play();
+        }
+      }
+    }
+  }
+  // 비디오 위치 및 상태 동기화
+  function syncVideoState() {
+    const videoState = {
+      currentTime: video.currentTime,
+      paused: video.paused,
+      width: canvas.style.width,
+      height: canvas.style.height,
+      left: canvas.style.left,
+      top: canvas.style.top,
+    };
+    localStorage.setItem("videoState", JSON.stringify(videoState));
+  }
+
+  function sendEvent(eventData) {
+    localStorage.setItem(syncKey, JSON.stringify(eventData));
+  }
+
+  window.addEventListener("storage", (e) => {
+    if (e.key === syncKey && e.newValue) {
+      const eventData = JSON.parse(e.newValue);
+
+      if (eventData.type === "click") {
+        simulateClick(eventData.x, eventData.y);
+      }
+    }
+  });
+
+  // 다른 페이지에서 이벤트 수신 (Page B에서 클릭한 경우만 점 표시)
+  window.addEventListener("storage", (e) => {
+    if (e.key === syncKey && e.newValue) {
+      const eventData = JSON.parse(e.newValue);
+
+      if (eventData.type === "click") {
+        simulateClick(eventData.x, eventData.y);
+      }
+    }
+  });
+
+  function simulateClick(x, y) {
+    const clickIndicator = document.createElement("div");
+    clickIndicator.style.position = "absolute";
+    clickIndicator.style.left = `${x - 5}px`;
+    clickIndicator.style.top = `${y - 5}px`;
+    clickIndicator.style.width = "10px";
+    clickIndicator.style.height = "10px";
+    clickIndicator.style.backgroundColor = "red";
+    clickIndicator.style.borderRadius = "50%";
+    document.body.appendChild(clickIndicator);
+
+    setTimeout(() => {
+      document.body.removeChild(clickIndicator);
+    }, 1000);
+  }
+
+  // 상태 동기화 함수
+  function syncVideoState() {
+    const videoState = {
+      currentTime: video.currentTime,
+      paused: video.paused,
+      width: canvas.style.width,
+      height: canvas.style.height,
+      left: canvas.style.left,
+      top: canvas.style.top,
+    };
+    localStorage.setItem("videoState", JSON.stringify(videoState));
+  }
+
+  // 이벤트 전송 함수
+  function sendEvent(eventData) {
+    localStorage.setItem(syncKey, JSON.stringify(eventData));
+  }
+
+  // 이벤트 및 상태 동기화
+  window.addEventListener("storage", (e) => {
+    if (e.key === syncKey && e.newValue) {
+      const eventData = JSON.parse(e.newValue);
+      if (eventData.type === "mousemove") {
+        canvas.style.left = `${eventData.x}px`;
+        canvas.style.top = `${eventData.y}px`;
+      } else if (eventData.type === "wheel") {
+        scale = eventData.scale;
+        canvas.style.width = `${video.videoWidth * scale}px`;
+        canvas.style.height = `${video.videoHeight * scale}px`;
+        gl.viewport(0, 0, canvas.width, canvas.height);
+      }
+    }
+  });
+
+  // initWebGL();
+
   function compileShader(gl, source, type) {
     const shader = gl.createShader(type);
     gl.shaderSource(shader, source);
@@ -505,119 +607,67 @@ document.addEventListener("DOMContentLoaded", function () {
   video.addEventListener("loadedmetadata", () => {
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
-    gl.viewport(0, 0, canvas.width, canvas.height);
+    // gl.viewport(0, 0, canvas.width, canvas.height);
   });
 
-  // WebGL 초기화
-  initWebGL();
+  let lastDragUpdate = 0;
+  const dragUpdateInterval = 50;
 
-  // 이벤트 수신 (Page A에서 발생한 동작 반영)
-  window.addEventListener("storage", (e) => {
-    if (e.key === syncKey && e.newValue) {
-      const eventData = JSON.parse(e.newValue);
+  // 드래그 이벤트 처리
+  canvas.addEventListener("mousedown", (e) => {
+    isDragging = true;
+    offsetX = e.clientX - canvas.offsetLeft;
+    offsetY = e.clientY - canvas.offsetTop;
+    canvas.style.cursor = "grabbing";
+  });
 
-      if (eventData.type === "mousemove") {
-        canvas.style.left = `${eventData.x}px`;
-        canvas.style.top = `${eventData.y}px`;
-      } else if (eventData.type === "wheel") {
-        simulateWheel(eventData.scale);
+  document.addEventListener("mousemove", (e) => {
+    if (isDragging) {
+      const newX = e.clientX - offsetX;
+      const newY = e.clientY - offsetY;
+      canvas.style.left = `${newX}px`;
+      canvas.style.top = `${newY}px`;
+
+      const now = Date.now();
+      if (now - lastDragUpdate > dragUpdateInterval) {
+        syncVideoState();
+        lastDragUpdate = now;
+
+        const eventData = {
+          type: "mousemove",
+          x: newX,
+          y: newY,
+          timestamp: Date.now(),
+        };
+        sendEvent(eventData);
       }
     }
   });
 
-  window.addEventListener("storage", (e) => {
-    if (e.key === syncKey && e.newValue) {
-      const eventData = JSON.parse(e.newValue);
-
-      if (eventData.type === "click") {
-        simulateClick(eventData.x, eventData.y);
-      }
-    }
+  document.addEventListener("mouseup", () => {
+    isDragging = false;
+    canvas.style.cursor = "move";
+    syncVideoState();
   });
 
-  function simulateClick(x, y) {
-    const clickIndicator = document.createElement("div");
-    clickIndicator.style.position = "absolute";
-    clickIndicator.style.left = `${x - 5}px`;
-    clickIndicator.style.top = `${y - 5}px`;
-    clickIndicator.style.width = "10px";
-    clickIndicator.style.height = "10px";
-    clickIndicator.style.backgroundColor = "blue"; // 파란 점
-    clickIndicator.style.borderRadius = "50%";
-    document.body.appendChild(clickIndicator);
+  // 크기 조절 (Ctrl + 휠)
+  canvas.addEventListener("wheel", (e) => {
+    if (e.ctrlKey) {
+      e.preventDefault();
+      const delta = e.deltaY > 0 ? 0.9 : 1.1;
+      scale *= delta;
+      scale = Math.min(maxScale, Math.max(minScale, scale));
+      canvas.style.width = `${video.videoWidth * scale}px`;
+      canvas.style.height = `${video.videoHeight * scale}px`;
+      gl.viewport(0, 0, canvas.width, canvas.height);
+      syncVideoState();
 
-    setTimeout(() => {
-      document.body.removeChild(clickIndicator);
-    }, 1000); // 1초 후 점 삭제
-  }
-
-  function simulateWheel(scale) {
-    canvas.style.width = `${video.videoWidth * scale}px`;
-    canvas.style.height = `${video.videoHeight * scale}px`;
-    gl.viewport(0, 0, canvas.width, canvas.height);
-  }
-
-  // Page B에서 클릭 시 이벤트 전송 (Page A에서 점이 찍히도록)
-  document.addEventListener("click", (e) => {
-    const x = e.clientX;
-    const y = e.clientY;
-
-    const eventData = {
-      type: "click",
-      x: x,
-      y: y,
-      timestamp: Date.now(),
-    };
-    sendEvent(eventData);
-  });
-
-  function sendEvent(eventData) {
-    localStorage.setItem(syncKey, JSON.stringify(eventData));
-  }
-});
-
-// WebRTC video
-let peerConnection;
-
-// WebRTC 연결 시작 함수
-function startWebRTC() {
-  const config = { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] };
-  peerConnection = new RTCPeerConnection(config);
-
-  // 수신된 스트림을 비디오 요소에 연결
-  peerConnection.ontrack = event => {
-    document.getElementById('video').srcObject = event.streams[0];
-  };
-
-  // ICE 후보 생성 시 부모 페이지로 전송
-  peerConnection.onicecandidate = event => {
-    if (event.candidate) {
-      // ICE 후보를 JSON으로 직렬화하여 전송
-      window.parent.postMessage({ type: 'iceCandidate', candidate: JSON.stringify(event.candidate), page: 'pageA' }, '*');
+      const eventData = {
+        type: "wheel",
+        scale: scale,
+        timestamp: Date.now(),
+      };
+      sendEvent(eventData);
     }
-  };
-}
-
-// main_site에서 보낸 메시지 처리
-window.addEventListener('message', event => {
-  if (event.data.type === 'offer') {
-    startWebRTC();
-    const offer = new RTCSessionDescription(JSON.parse(event.data.offer)); // Offer를 JSON에서 복원
-    peerConnection.setRemoteDescription(offer)
-      .then(() => {
-        return peerConnection.createAnswer();
-      })
-      .then(answer => {
-        peerConnection.setLocalDescription(answer);
-        // Answer를 JSON으로 직렬화하여 부모 페이지로 전송
-        window.parent.postMessage({ type: 'answer', answer: JSON.stringify(answer), page: 'pageA' }, '*');
-      })
-      .catch(error => console.error('Offer 처리 중 오류:', error));
-  }
-
-  if (event.data.type === 'iceCandidate') {
-    const candidate = new RTCIceCandidate(JSON.parse(event.data.candidate)); // ICE 후보를 JSON에서 복원
-    peerConnection.addIceCandidate(candidate)
-      .catch(error => console.error('ICE 후보 추가 중 오류:', error));
-  }
+  });
 });

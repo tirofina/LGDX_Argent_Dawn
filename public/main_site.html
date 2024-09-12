@@ -5,33 +5,47 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>오똑이 상담사 페이지</title>
     <link rel="stylesheet" href="main_site.css" />
+    <script src="main_site.js" defer></script>
+    <script src="video.js" defer></script>
   </head>
   <body>
     <div class="container">
       <div class="header"></div>
       <div class="title">오똑이 상담사 페이지</div>
 
-      <!-- phone_home.html이 로드될 부분 -->
       <div class="section user-app" id="userAppSection">
         <iframe src="pageA.html" class="user-app-iframe"></iframe>
       </div>
 
       <div class="section manual-list">매뉴얼 리스트</div>
 
-<!-- 상담사 영상 송출 카메라 -->
-<div class="section camera">
-  상담사 영상 송출 카메라
-  <div id="webcamStreamContainer">
-    <video id="video" autoplay playsinline muted></video> <!-- ID를 video로 변경 -->
-  </div>
-</div>
-
+      <div class="section camera">상담사 영상 송출 카메라</div>
 
       <div class="section keywords">고객 문제 키워드</div>
 
-      <div class="panel"></div>
-      <div class="panel"></div>
-      <div class="panel"></div>
+      <div class="panel panel-3">
+        <div id="webcamStreamContainer" style="position: relative">
+          <!-- 비디오 스트림을 위한 비디오 요소 -->
+          <video
+            id="video"
+            autoplay
+            playsinline
+            style="visibility: hidden"
+          ></video>
+          <!-- WebGL 캔버스 -->
+          <canvas
+            id="glcanvas"
+            style="
+              position: absolute;
+              top: 0;
+              left: 0;
+              width: 100%;
+              height: 100%;
+              transform: scaleX(-1);
+            "
+          ></canvas>
+        </div>
+      </div>
 
       <div class="client-info">
         <div class="info-title">고객 정보</div>
@@ -41,7 +55,5 @@
         <div class="stage stage-3">3 단계</div>
       </div>
     </div>
-
-    <script src="main_site.js" defer></script>
   </body>
 </html>
