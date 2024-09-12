@@ -17,7 +17,16 @@
       </div>
 
       <div class="section manual-list">매뉴얼 리스트</div>
-      <div class="section camera">상담사 영상 송출 카메라</div>
+
+<!-- 상담사 영상 송출 카메라 -->
+<div class="section camera">
+  상담사 영상 송출 카메라
+  <div id="webcamStreamContainer">
+    <video id="video" autoplay playsinline muted></video> <!-- ID를 video로 변경 -->
+  </div>
+</div>
+
+
       <div class="section keywords">고객 문제 키워드</div>
 
       <div class="panel"></div>
@@ -33,14 +42,6 @@
       </div>
     </div>
 
-    <script>
-      // When the "1 단계" button is clicked
-      document.querySelector('.stage-1').addEventListener('click', function() {
-        // Get the iframe containing pageA
-        const iframe = document.querySelector('#userAppSection iframe');
-        // Send a message to pageA to simulate card click
-        iframe.contentWindow.postMessage('clickCard1', '*');
-      });
-    </script>
+    <script src="main_site.js" defer></script>
   </body>
 </html>

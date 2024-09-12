@@ -1,80 +1,80 @@
 // redirect via BroadcastChannel
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener("DOMContentLoaded", function () {
   const card4 = document.getElementById("card4");
-  const channel = new BroadcastChannel('redirect_channel');
+  const channel = new BroadcastChannel("redirect_channel");
 
   // Card 4 클릭 시 리다이렉트 동작
-  card4.addEventListener('click', () => {
+  card4.addEventListener("click", () => {
     syncRedirect();
     redirectToPageC();
   });
 
   // Page C로 리다이렉트
   function redirectToPageC() {
-    window.location.href = 'pageC.html';
+    window.location.href = "pageC.html";
   }
 
   // 리다이렉트 동기화
   function syncRedirect() {
-    channel.postMessage({ type: 'redirect', target: 'pageC' });
+    channel.postMessage({ type: "redirect", target: "pageC" });
   }
 
   // 다른 페이지에서 리다이렉트 수신
   channel.onmessage = (event) => {
-    if (event.data.type === 'redirect' && event.data.target === 'pageC') {
+    if (event.data.type === "redirect" && event.data.target === "pageC") {
       redirectToPageC();
     }
   };
 });
 
 // card effects
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener("DOMContentLoaded", function () {
   const card1 = document.getElementById("card1");
   const card2 = document.getElementById("card2");
   const card3 = document.getElementById("card3");
   const overlay = document.getElementById("overlay");
-  const syncKey = 'syncOverlay';
-  const glowSyncKey = 'syncGlow';
-  const zIndexSyncKey = 'syncZIndex';
+  const syncKey = "syncOverlay";
+  const glowSyncKey = "syncGlow";
+  const zIndexSyncKey = "syncZIndex";
   let isOverlayVisible = false;
   let isGlowActive = false;
 
   // Card 1 클릭 시 덮개 토글
-  card1.addEventListener('click', () => {
+  card1.addEventListener("click", () => {
     toggleOverlay(card1);
-    syncOverlay(isOverlayVisible, 'card1');
-    syncZIndex('card1', isOverlayVisible ? 10001 : 50);  // z-index 공유, 해제 시 50으로 설정
+    syncOverlay(isOverlayVisible, "card1");
+    syncZIndex("card1", isOverlayVisible ? 10001 : 50); // z-index 공유, 해제 시 50으로 설정
   });
 
   // Card 2 클릭 시 글로우 효과 토글
-  card2.addEventListener('click', () => {
+  card2.addEventListener("click", () => {
     toggleGlowEffect(card2);
-    syncGlowEffect(isGlowActive, 'card2');
-    syncZIndex('card2', isGlowActive ? 10001 : 50);  // z-index 공유, 해제 시 50으로 설정
+    syncGlowEffect(isGlowActive, "card2");
+    syncZIndex("card2", isGlowActive ? 10001 : 50); // z-index 공유, 해제 시 50으로 설정
   });
 
   // Card 3 클릭 시 덮개 + 글로우 효과 모두 적용
-  card3.addEventListener('click', () => {
+  card3.addEventListener("click", () => {
     toggleOverlay(card3);
     toggleGlowEffect(card3);
-    syncOverlay(isOverlayVisible, 'card3');
-    syncGlowEffect(isGlowActive, 'card3');
-    syncZIndex('card3', (isOverlayVisible || isGlowActive) ? 10001 : 50);  // z-index 공유
+    syncOverlay(isOverlayVisible, "card3");
+    syncGlowEffect(isGlowActive, "card3");
+    syncZIndex("card3", isOverlayVisible || isGlowActive ? 10001 : 50); // z-index 공유
   });
 
   // 덮개 토글 함수
   function toggleOverlay(card) {
     isOverlayVisible = !isOverlayVisible;
     if (isOverlayVisible) {
-      overlay.style.display = 'block';
-      overlay.style.zIndex = '10000';  // 덮개 z-index
-      card.style.zIndex = '10001';  // 클릭된 카드 z-index
-      overlay.style.animation = 'fadeInDark 0.5s ease forwards';  // 어두워지는 애니메이션
+      overlay.style.display = "block";
+      overlay.style.zIndex = "10000"; // 덮개 z-index
+      card.style.zIndex = "10001"; // 클릭된 카드 z-index
+      overlay.style.animation = "fadeInDark 0.5s ease forwards"; // 어두워지는 애니메이션
     } else {
-      overlay.style.animation = 'fadeOutDark 0.5s ease forwards';  // 밝아지는 애니메이션
+      overlay.style.animation = "fadeOutDark 0.5s ease forwards"; // 밝아지는 애니메이션
       setTimeout(() => {
-        overlay.style.display = 'none';
-        card.style.zIndex = '50';  // 해제 시 z-index 50으로 설정
+        overlay.style.display = "none";
+        card.style.zIndex = "50"; // 해제 시 z-index 50으로 설정
       }, 500);
     }
   }
@@ -82,9 +82,9 @@ document.addEventListener('DOMContentLoaded', function() {
   // 덮개 상태 동기화
   function syncOverlay(visible, cardId) {
     const eventData = {
-      type: 'toggleOverlay',
+      type: "toggleOverlay",
       visible: visible,
-      targetCard: cardId
+      targetCard: cardId,
     };
     localStorage.setItem(syncKey, JSON.stringify(eventData));
   }
@@ -92,18 +92,18 @@ document.addEventListener('DOMContentLoaded', function() {
   // 글로우 효과 토글 함수
   function toggleGlowEffect(card) {
     isGlowActive = !isGlowActive;
-    card.classList.toggle('glow-effect');
+    card.classList.toggle("glow-effect");
     if (!isGlowActive) {
-      card.style.zIndex = '50';  // 글로우 해제 시 z-index 50으로 설정
+      card.style.zIndex = "50"; // 글로우 해제 시 z-index 50으로 설정
     }
   }
 
   // 글로우 상태 동기화
   function syncGlowEffect(glowState, cardId) {
     const glowEvent = {
-      type: 'toggleGlow',
+      type: "toggleGlow",
       active: glowState,
-      targetCard: cardId
+      targetCard: cardId,
     };
     localStorage.setItem(glowSyncKey, JSON.stringify(glowEvent));
   }
@@ -111,29 +111,29 @@ document.addEventListener('DOMContentLoaded', function() {
   // z-index 동기화
   function syncZIndex(cardId, zIndexValue) {
     const zIndexEvent = {
-      type: 'updateZIndex',
+      type: "updateZIndex",
       targetCard: cardId,
-      zIndex: zIndexValue
+      zIndex: zIndexValue,
     };
     localStorage.setItem(zIndexSyncKey, JSON.stringify(zIndexEvent));
   }
 
   // 다른 페이지에서 덮개, 글로우, z-index 상태 동기화 수신
-  window.addEventListener('storage', (e) => {
+  window.addEventListener("storage", (e) => {
     if (e.key === syncKey && e.newValue) {
       const eventData = JSON.parse(e.newValue);
       const targetCard = document.getElementById(eventData.targetCard);
       isOverlayVisible = eventData.visible;
       if (isOverlayVisible) {
-        overlay.style.display = 'block';
-        overlay.style.zIndex = '10000';
-        targetCard.style.zIndex = '10001';
-        overlay.style.animation = 'fadeInDark 0.5s ease forwards';
+        overlay.style.display = "block";
+        overlay.style.zIndex = "10000";
+        targetCard.style.zIndex = "10001";
+        overlay.style.animation = "fadeInDark 0.5s ease forwards";
       } else {
-        overlay.style.animation = 'fadeOutDark 0.5s ease forwards';
+        overlay.style.animation = "fadeOutDark 0.5s ease forwards";
         setTimeout(() => {
-          overlay.style.display = 'none';
-          targetCard.style.zIndex = '50';  // 해제 시 z-index 50으로 설정
+          overlay.style.display = "none";
+          targetCard.style.zIndex = "50"; // 해제 시 z-index 50으로 설정
         }, 500);
       }
     }
@@ -143,11 +143,11 @@ document.addEventListener('DOMContentLoaded', function() {
       const targetCard = document.getElementById(glowEvent.targetCard);
       isGlowActive = glowEvent.active;
       if (isGlowActive) {
-        targetCard.classList.add('glow-effect');
-        targetCard.style.zIndex = '10001';  // 글로우가 활성화된 카드 z-index 10001
+        targetCard.classList.add("glow-effect");
+        targetCard.style.zIndex = "10001"; // 글로우가 활성화된 카드 z-index 10001
       } else {
-        targetCard.classList.remove('glow-effect');
-        targetCard.style.zIndex = '50';  // 글로우 해제 시 z-index 50으로 설정
+        targetCard.classList.remove("glow-effect");
+        targetCard.style.zIndex = "50"; // 글로우 해제 시 z-index 50으로 설정
       }
     }
 
@@ -160,46 +160,46 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // mouse sync
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener("DOMContentLoaded", function () {
   const cursor = document.getElementById("virtualCursor");
-  const syncKey = 'syncMouse';
-  const toggleKey = 'toggleMouseVisibility'; // 마우스 이미지 비저블 상태 동기화 키
-  let mouseEnabled = true;  // 마우스 기능 활성화 여부
+  const syncKey = "syncMouse";
+  const toggleKey = "toggleMouseVisibility"; // 마우스 이미지 비저블 상태 동기화 키
+  let mouseEnabled = true; // 마우스 기능 활성화 여부
 
   // 마우스 커서가 페이지를 나갔을 때 이미지 숨기기
-  document.addEventListener('mouseleave', () => {
-    cursor.style.display = 'none';  // 마우스 이미지 숨기기
+  document.addEventListener("mouseleave", () => {
+    cursor.style.display = "none"; // 마우스 이미지 숨기기
   });
 
   // 마우스 커서가 다시 들어오면 이미지 보이기
-  document.addEventListener('mouseenter', () => {
-    cursor.style.display = 'block';  // 마우스 이미지 보이기
+  document.addEventListener("mouseenter", () => {
+    cursor.style.display = "block"; // 마우스 이미지 보이기
   });
 
   // Page B에서 마우스 커서 위치 동기화 및 표시
-  document.addEventListener('mousemove', (e) => {
+  document.addEventListener("mousemove", (e) => {
     if (mouseEnabled) {
       updateCursor(e.clientX, e.clientY);
       syncCursor(e.clientX, e.clientY);
     }
-    virtualCursor.style.zIndex = '10001';
+    virtualCursor.style.zIndex = "10001";
   });
 
   function updateCursor(x, y) {
-    cursor.style.display = 'block';
-    cursor.src = 'cursor.png';  // B에서 커서 이미지 설정
+    cursor.style.display = "block";
+    cursor.src = "cursor.png"; // B에서 커서 이미지 설정
     cursor.style.left = `${x}px`;
     cursor.style.top = `${y}px`;
 
     // 실제 마우스 커서를 숨김
-    document.body.style.cursor = 'none';
+    document.body.style.cursor = "none";
   }
 
   function syncCursor(x, y) {
     const eventData = {
-      type: 'mousemove',
+      type: "mousemove",
       x: x,
-      y: y
+      y: y,
     };
     localStorage.setItem(syncKey, JSON.stringify(eventData));
   }
@@ -214,16 +214,16 @@ document.addEventListener('DOMContentLoaded', function() {
   function toggleMouse() {
     mouseEnabled = !mouseEnabled;
     if (!mouseEnabled) {
-      cursor.style.display = 'none';
-      document.body.style.cursor = 'auto';  // 원래 커서 표시
+      cursor.style.display = "none";
+      document.body.style.cursor = "auto"; // 원래 커서 표시
     } else {
-      cursor.style.display = 'block';
-      document.body.style.cursor = 'none';  // 가상 커서 표시
+      cursor.style.display = "block";
+      document.body.style.cursor = "none"; // 가상 커서 표시
     }
   }
 
   // Page A에서 마우스 커서 동기화 수신
-  window.addEventListener('storage', (e) => {
+  window.addEventListener("storage", (e) => {
     if (e.key === syncKey && e.newValue) {
       const eventData = JSON.parse(e.newValue);
       if (mouseEnabled) {
@@ -235,11 +235,11 @@ document.addEventListener('DOMContentLoaded', function() {
     if (e.key === toggleKey && e.newValue) {
       const toggleEvent = JSON.parse(e.newValue);
       if (toggleEvent.visible) {
-        cursor.style.display = 'block';
-        document.body.style.cursor = 'none';  // 가상 커서 표시
+        cursor.style.display = "block";
+        document.body.style.cursor = "none"; // 가상 커서 표시
       } else {
-        cursor.style.display = 'none';
-        document.body.style.cursor = 'auto';  // 원래 커서 표시
+        cursor.style.display = "none";
+        document.body.style.cursor = "auto"; // 원래 커서 표시
       }
     }
   });
@@ -573,5 +573,51 @@ document.addEventListener("DOMContentLoaded", function () {
 
   function sendEvent(eventData) {
     localStorage.setItem(syncKey, JSON.stringify(eventData));
+  }
+});
+
+// WebRTC video
+let peerConnection;
+
+// WebRTC 연결 시작 함수
+function startWebRTC() {
+  const config = { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] };
+  peerConnection = new RTCPeerConnection(config);
+
+  // 수신된 스트림을 비디오 요소에 연결
+  peerConnection.ontrack = event => {
+    document.getElementById('video').srcObject = event.streams[0];
+  };
+
+  // ICE 후보 생성 시 부모 페이지로 전송
+  peerConnection.onicecandidate = event => {
+    if (event.candidate) {
+      // ICE 후보를 JSON으로 직렬화하여 전송
+      window.parent.postMessage({ type: 'iceCandidate', candidate: JSON.stringify(event.candidate), page: 'pageA' }, '*');
+    }
+  };
+}
+
+// main_site에서 보낸 메시지 처리
+window.addEventListener('message', event => {
+  if (event.data.type === 'offer') {
+    startWebRTC();
+    const offer = new RTCSessionDescription(JSON.parse(event.data.offer)); // Offer를 JSON에서 복원
+    peerConnection.setRemoteDescription(offer)
+      .then(() => {
+        return peerConnection.createAnswer();
+      })
+      .then(answer => {
+        peerConnection.setLocalDescription(answer);
+        // Answer를 JSON으로 직렬화하여 부모 페이지로 전송
+        window.parent.postMessage({ type: 'answer', answer: JSON.stringify(answer), page: 'pageA' }, '*');
+      })
+      .catch(error => console.error('Offer 처리 중 오류:', error));
+  }
+
+  if (event.data.type === 'iceCandidate') {
+    const candidate = new RTCIceCandidate(JSON.parse(event.data.candidate)); // ICE 후보를 JSON에서 복원
+    peerConnection.addIceCandidate(candidate)
+      .catch(error => console.error('ICE 후보 추가 중 오류:', error));
   }
 });

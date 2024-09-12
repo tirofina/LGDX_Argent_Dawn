@@ -1,37 +1,38 @@
 // redirect via BroadcastChannel
-document.addEventListener('DOMContentLoaded', function() {  
+document.addEventListener("DOMContentLoaded", function () {
   const card4 = document.getElementById("card4");
-  const channel = new BroadcastChannel('redirect_channel');
+  const channel = new BroadcastChannel("redirect_channel");
 
   // Card 4 클릭 시 리다이렉트 동작
-  card4.addEventListener('click', () => {
+  card4.addEventListener("click", () => {
     syncRedirect();
     redirectToPageC();
   });
 
   // Page C로 리다이렉트
   function redirectToPageC() {
-    window.location.href = 'pageC.html';
+    window.location.href = "pageC.html";
   }
 
   // 리다이렉트 동기화
   function syncRedirect() {
-    channel.postMessage({ type: 'redirect', target: 'pageC' });
+    channel.postMessage({ type: "redirect", target: "pageC" });
   }
 
   // 다른 페이지에서 리다이렉트 수신
   channel.onmessage = (event) => {
-    if (event.data.type === 'redirect' && event.data.target === 'pageC') {
+    if (event.data.type === "redirect" && event.data.target === "pageC") {
       redirectToPageC();
     }
   };
 });
 
-window.addEventListener('message', function(event) {
-  if (event.data === 'clickCard1') {
+// click event sync
+window.addEventListener("message", function (event) {
+  if (event.data === "clickCard1") {
     // Simulate card 1 click
-    const card1 = document.getElementById('card1');
-    card1.click();  // or you can trigger any specific function for this card
+    const card1 = document.getElementById("card1");
+    card1.click(); // or you can trigger any specific function for this card
   }
 });
 
@@ -688,4 +689,45 @@ document.addEventListener("DOMContentLoaded", function () {
       sendEvent(eventData);
     }
   });
+});
+
+// WebRTC video
+let peerConnection;
+
+// WebRTC 연결 시작 함수
+function startWebRTC() {
+  const config = { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] };
+  peerConnection = new RTCPeerConnection(config);
+
+  // 수신된 스트림을 비디오 요소에 연결
+  peerConnection.ontrack = event => {
+    document.getElementById('video').srcObject = event.streams[0]; // 수신된 스트림을 비디오에 출력
+  };
+
+  // ICE 후보 생성 시 부모 페이지로 전송
+  peerConnection.onicecandidate = event => {
+    if (event.candidate) {
+      window.parent.postMessage({ type: 'iceCandidate', candidate: JSON.stringify(event.candidate), page: 'pageA' }, '*');
+    }
+  };
+}
+
+// main_site에서 보낸 메시지 처리
+window.addEventListener('message', event => {
+  if (event.data.type === 'offer') {
+    startWebRTC(); // WebRTC 시작
+    const offer = new RTCSessionDescription(JSON.parse(event.data.offer)); // Offer 수신
+    peerConnection.setRemoteDescription(offer)
+      .then(() => peerConnection.createAnswer()) // Answer 생성
+      .then(answer => {
+        peerConnection.setLocalDescription(answer);
+        window.parent.postMessage({ type: 'answer', answer: JSON.stringify(answer), page: 'pageA' }, '*'); // Answer 전송
+      })
+      .catch(error => console.error('Offer 처리 중 오류:', error));
+  }
+
+  if (event.data.type === 'iceCandidate') {
+    const candidate = new RTCIceCandidate(JSON.parse(event.data.candidate)); // ICE 후보 처리
+    peerConnection.addIceCandidate(candidate).catch(error => console.error('ICE 후보 추가 중 오류:', error));
+  }
 });
